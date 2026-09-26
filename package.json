@@ -1,0 +1,18 @@
+{
+  "name": "lesson-plan-automation",
+  "version": "1.0.0",
+  "description": "Google Docs Lesson Plan Auto-Monitor & Reminder System",
+  "scripts": {
+    "dev:lesson-plan-dashboard": "python -m streamlit run app.py --server.port 3085 --server.headless true",
+    "scan:mock": "python main.py --mock --dry-run --send-reminders",
+    "test:unit": "python test_pipeline.py"
+  },
+  "keywords": [
+    "lesson-plan",
+    "google-docs",
+    "automation",
+    "streamlit"
+  ],
+  "author": "Antigravity Senior Full-Stack Agent",
+  "license": "ISC"
+}
