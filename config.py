@@ -20,22 +20,33 @@ def extract_google_id(input_str: str) -> str:
     return clean
 
 
+def _get_setting(key: str, default: str = "") -> str:
+    """Retrieves setting from Streamlit secrets, environment variables, or fallback default."""
+    try:
+        import streamlit as st
+        if key in st.secrets:
+            return str(st.secrets[key])
+    except Exception:
+        pass
+    return os.getenv(key, default)
+
+
 @dataclass(frozen=True)
 class AppConfig:
-    """Application configuration container loaded from environment variables."""
-    oauth_credentials_path: str = os.getenv("GOOGLE_OAUTH_CREDENTIALS", "credentials.json")
-    token_path: str = os.getenv("GOOGLE_TOKEN_PATH", "token.json")
-    service_account_path: Optional[str] = os.getenv("GOOGLE_SERVICE_ACCOUNT_PATH") or None
-    root_folder_id: str = os.getenv("GOOGLE_DRIVE_ROOT_FOLDER_ID", "1UQG_rM9mbMlFEPiEXTUK7cOWjoxlkPLM")
-    target_spreadsheet_id: str = os.getenv("GOOGLE_TARGET_SPREADSHEET_ID", "1K2rkKmSAoITQZkelOp9-fnftcLn_AYxJ2yBXPHTdWcQ")
-    doc_name_pattern: str = os.getenv("DOC_NAME_PATTERN", "수업계획서")
-    sender_email: str = os.getenv("SENDER_EMAIL", "me")
-    email_subject_template: str = os.getenv(
+    """Application configuration container loaded from environment variables or st.secrets."""
+    oauth_credentials_path: str = _get_setting("GOOGLE_OAUTH_CREDENTIALS", "credentials.json")
+    token_path: str = _get_setting("GOOGLE_TOKEN_PATH", "token.json")
+    service_account_path: Optional[str] = _get_setting("GOOGLE_SERVICE_ACCOUNT_PATH") or None
+    root_folder_id: str = _get_setting("GOOGLE_DRIVE_ROOT_FOLDER_ID", "1UQG_rM9mbMlFEPiEXTUK7cOWjoxlkPLM")
+    target_spreadsheet_id: str = _get_setting("GOOGLE_TARGET_SPREADSHEET_ID", "1K2rkKmSAoITQZkelOp9-fnftcLn_AYxJ2yBXPHTdWcQ")
+    doc_name_pattern: str = _get_setting("DOC_NAME_PATTERN", "수업계획서")
+    sender_email: str = _get_setting("SENDER_EMAIL", "me")
+    email_subject_template: str = _get_setting(
         "EMAIL_SUBJECT_TEMPLATE",
         "[Notice] Lesson Plan Submission Check for {week_label}"
     )
-    mock_mode: bool = os.getenv("MOCK_MODE", "false").strip().lower() in ("true", "1", "yes")
-    dry_run: bool = os.getenv("DRY_RUN", "false").strip().lower() in ("true", "1", "yes")
+    mock_mode: bool = _get_setting("MOCK_MODE", "false").strip().lower() in ("true", "1", "yes")
+    dry_run: bool = _get_setting("DRY_RUN", "false").strip().lower() in ("true", "1", "yes")
 
 
 def get_config() -> AppConfig:

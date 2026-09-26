@@ -59,7 +59,7 @@ class GoogleAuthManager:
                 logger.error("Failed to load service account credentials: %s", exc)
                 raise
 
-        # 2. Check for cached OAuth token
+        # 2. Check for cached OAuth token on disk
         if os.path.exists(self.token_path):
             try:
                 self._creds = Credentials.from_authorized_user_file(self.token_path, self.scopes)
@@ -68,7 +68,25 @@ class GoogleAuthManager:
                 logger.warning("Corrupted or invalid token file %s: %s", self.token_path, exc)
                 self._creds = None
 
-        # 3. Refresh expired credentials or run interactive OAuth flow
+        # 3. Check Streamlit Cloud st.secrets for OAuth token / credentials
+        if not self._creds:
+            try:
+                import streamlit as st
+                # Option A: [google_oauth] table in secrets.toml
+                if "google_oauth" in st.secrets:
+                    logger.info("Loading credentials from st.secrets['google_oauth']")
+                    oauth_info = dict(st.secrets["google_oauth"])
+                    self._creds = Credentials.from_authorized_user_info(oauth_info, self.scopes)
+                # Option B: Raw JSON string in GOOGLE_TOKEN_JSON
+                elif "GOOGLE_TOKEN_JSON" in st.secrets:
+                    import json
+                    logger.info("Loading credentials from st.secrets['GOOGLE_TOKEN_JSON']")
+                    oauth_info = json.loads(st.secrets["GOOGLE_TOKEN_JSON"])
+                    self._creds = Credentials.from_authorized_user_info(oauth_info, self.scopes)
+            except Exception as exc:
+                logger.info("No valid OAuth token found in st.secrets: %s", exc)
+
+        # 4. Refresh expired credentials or run interactive OAuth flow
         if not self._creds or not self._creds.valid:
             if self._creds and self._creds.expired and self._creds.refresh_token:
                 logger.info("Refreshing expired OAuth token...")
