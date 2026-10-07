@@ -99,8 +99,10 @@ class GoogleAuthManager:
             if not self._creds:
                 if not os.path.exists(self.oauth_credentials_path):
                     err_msg = (
-                        f"OAuth client secret file not found at '{self.oauth_credentials_path}'. "
-                        "Please download credentials.json from Google Cloud Console."
+                        f"OAuth client secret file '{self.oauth_credentials_path}' was not found, and no valid "
+                        "Google OAuth token is available in Streamlit Secrets.\n"
+                        "💡 If running on Streamlit Cloud: Please update Settings -> Secrets with the refreshed [google_oauth] token.\n"
+                        "💡 If running locally: Please run 'python reauth.py' to authenticate with Google."
                     )
                     logger.error(err_msg)
                     raise FileNotFoundError(err_msg)
